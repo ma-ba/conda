@@ -98,8 +98,7 @@ def get_user_site():
     return site_dirs
 
 
-IGNORE_FIELDS = {'files', 'auth', 'with_features_depends',
-                 'preferred_env', 'priority'}
+IGNORE_FIELDS = {'files', 'auth', 'preferred_env', 'priority'}
 
 SKIP_FIELDS = IGNORE_FIELDS | {'name', 'version', 'build', 'build_number',
                                'channel', 'schannel', 'size', 'fn', 'depends'}
@@ -326,7 +325,7 @@ def execute(args, parser):
             print("sys.prefix: %s" % sys.prefix)
             print("sys.executable: %s" % sys.executable)
             print("conda location: %s" % info_dict['conda_location'])
-            for cmd in sorted(set(find_commands() + ['build'])):
+            for cmd in sorted(set(find_commands() + ('build',))):
                 print("conda-%s: %s" % (cmd, find_executable('conda-' + cmd)))
             print("user site dirs: ", end='')
             site_dirs = get_user_site()
