@@ -19,14 +19,23 @@
 @IF "%CONDA_PROMPT_MODIFIER%" == "" GOTO skip_prompt_set_activate
     @CALL SET "PROMPT=%%PROMPT:%CONDA_PROMPT_MODIFIER%=%_empty_not_set_%%%"
 :skip_prompt_set_activate
-@FOR /F "delims=" %%i IN ('@CALL "%_CONDA_EXE%" shell.activate cmd.exe %2 %3') DO @SET "_TEMP_SCRIPT_PATH=%%i"
-
-@REM What's the correct way to stop if the @CALL in the loop returns non-zero?
-
+@SET "_TEMP_SCRIPT_PATH="
+@FOR /F "delims=" %%i IN ('CMD /C @CALL "%_CONDA_EXE%" shell.activate cmd.exe %2 %3 ^|^| ECHO _ERR_LVL_%%^^ERRORLEVEL%%') DO @SET "_TEMP_SCRIPT_PATH=%%i"
+@REM if call failed with error code x, _TEMP_SCRIPT_PATH is set to string _ERR_LVL_x
+@IF DEFINED _TEMP_SCRIPT_PATH GOTO check_error_activate
+    @REM TODO: handle zero length output
+    @GOTO End
+:check_error_activate
+@IF NOT "%_TEMP_SCRIPT_PATH:~0,9%" == "_ERR_LVL_" GOTO call_temp_script_activate
+    @SET "_ERR_LVL=%_TEMP_SCRIPT_PATH:~9%"
+    @REM TODO: handle failed call which returned error code %_ERR_LVL%
+    @GOTO cleanup_activate
+:call_temp_script_activate
 @CALL "%_TEMP_SCRIPT_PATH%"
 @DEL /F /Q "%_TEMP_SCRIPT_PATH%"
-@SET _TEMP_SCRIPT_PATH=
 @SET PROMPT="%CONDA_PROMPT_MODIFIER%%PROMPT%"
+:cleanup_activate
+@SET _TEMP_SCRIPT_PATH=
 @GOTO :End
 
 :DO_DEACTIVATE
